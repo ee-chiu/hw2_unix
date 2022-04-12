@@ -11,7 +11,7 @@ all: ${PROGS}
 hw2: hw2.cpp 
 	$(CXX) -o $@ $(CFLAGS) $<
 
-hw2.so: hw2_so.c
+hw2.so: hw2_so.c helper.h
 	$(CGG) -o $@ $(SO_FLAGS) $< -ldl
 
 clean:
