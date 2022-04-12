@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <unistd.h>
-#include <sys/types.h>
 #include <string.h>
 
 int main(int argc, char* argv[]){
@@ -9,15 +8,12 @@ int main(int argc, char* argv[]){
         return 0;
     }
 
-    pid_t pid = fork();
-    if(pid == 0){
-        char* argv2[argc];
-        for(int i = 2 ; i < argc ; i++) strcpy(argv2[i-2], argv[i]);
-        argv2[argc-2] = NULL;
-        char* LD_PRELOAD = new char;
-        strcpy(LD_PRELOAD, "LD_PRELOAD=./hw2.so");
-        char* envp[] = {LD_PRELOAD, NULL}; 
-        execve(argv[1], argv2, envp);
-    }
+    char* argv2[argc];
+    for(int i = 2 ; i < argc ; i++) strcpy(argv2[i-2], argv[i]);
+    argv2[argc-2] = NULL;
+    char* LD_PRELOAD = new char;
+    strcpy(LD_PRELOAD, "LD_PRELOAD=./hw2.so");
+    char* envp[] = {LD_PRELOAD, NULL}; 
+    execve(argv[1], argv2, envp);
     return 0;
 }
