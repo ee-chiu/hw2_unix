@@ -178,3 +178,20 @@ int remove(const char* path){
     printf("[logger] remove(\"%s\") = %d\n", real_path, return_value);
     return return_value;
 }
+
+int rename(const char* oldpath, const char* newpath){
+    char* real_oldpath = calloc(256, sizeof(char));
+    char* real_newpath = calloc(256, sizeof(char));
+    realpath(oldpath, real_oldpath);
+    realpath(newpath, real_newpath);
+
+    int (*old_rename)(const char*, const char*) = NULL;
+    void* handle = dlopen("libc.so.6", RTLD_LAZY);
+    if(!handle) { printf("rename handle error!\n"); return -2; }
+    old_rename = dlsym(handle, "rename");
+    if(!old_rename) { printf("old_rename error!\n"); return -2; }
+
+    int return_value = old_rename(real_oldpath, real_newpath);
+    printf("[logger] rename(\"%s\", \"%s\") = %d\n", real_oldpath, real_newpath, return_value);
+    return return_value;
+}
