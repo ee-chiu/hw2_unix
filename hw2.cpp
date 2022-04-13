@@ -35,9 +35,7 @@ int main(int argc, char* argv[]){
 
     for(int i = command_start_index ; i < argc ; i++) strcpy(argv2[i-command_start_index], argv[i]);
     argv2[argc-command_start_index] = NULL;
-    char* LD_PRELOAD = new char[30];
-    strcpy(LD_PRELOAD, "LD_PRELOAD=./logger.so");
-    char* envp[] = {LD_PRELOAD, NULL}; 
-    execve(argv[command_start_index], argv2, envp);
+    setenv("LD_PRELOAD", "./logger.so", 0);
+    execvp(argv[command_start_index], argv2);
     return 0;
 }
