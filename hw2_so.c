@@ -163,3 +163,18 @@ ssize_t read(int fd, void* buf, size_t count){
     printf(", %lu) = %lu\n", count, return_value);
     return return_value;
 }
+
+int remove(const char* path){
+    char* real_path = calloc(256, sizeof(char));
+    realpath(path, real_path);
+
+    int (*old_remove)(const char*) = NULL;
+    void* handle = dlopen("libc.so.6", RTLD_LAZY);
+    if(!handle) { printf("remove handle error!\n"); return -2; }
+    old_remove = dlsym(handle, "remove");
+    if(!old_remove) { printf("old_remove error!\n"); return -2; }
+    
+    int return_value = old_remove(real_path);
+    printf("[logger] remove(\"%s\") = %d\n", real_path, return_value);
+    return return_value;
+}
