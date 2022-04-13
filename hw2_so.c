@@ -13,8 +13,9 @@ int chmod(const char* path, mode_t mode){
     if(!handle) { printf("chmod handle error!\n"); return -2; }
     old_chmod = dlsym(handle, "chmod");
     if(!old_chmod) { printf("old_chmod error!\n"); return -2; }
-    printf("[logger] chmod(\"%s\", %o) = %d\n", real_path, mode, old_chmod(real_path, mode));
-    return old_chmod(path, mode);
+    int return_value = old_chmod(real_path, mode);
+    printf("[logger] chmod(\"%s\", %o) = %d\n", real_path, mode, return_value);
+    return return_value;
 }
 
 int chown(const char* path, uid_t owner, gid_t group){
@@ -25,9 +26,9 @@ int chown(const char* path, uid_t owner, gid_t group){
     if(!handle) { printf("chown handle error!\n"); return -2; }
     old_chown = dlsym(handle, "chown");
     if(!old_chown) { printf("old_chown error!\n"); return -2; }
-    printf("[looger] chown(\"%s\", %d, %d) = %d\n", real_path, owner, group, old_chown(real_path, owner, group));
-
-    return (old_chown(real_path, owner, group));
+    int return_value = old_chown(real_path, owner, group);
+    printf("[looger] chown(\"%s\", %d, %d) = %d\n", real_path, owner, group, return_value);
+    return return_value;
 }
 
 int close(int fd){
@@ -38,8 +39,9 @@ int close(int fd){
     if(!old_close) { printf("old_close error!\n"); return -2; }
     char* real_path = calloc(256, sizeof(char));
     real_path = find_fd_filename(fd);
-    printf("[logger] close(\"%s\") = %d\n", real_path, old_close(fd));
-    return old_close(fd);
+    int return_value = old_close(fd);
+    printf("[logger] close(\"%s\") = %d\n", real_path, return_value);
+    return return_value;
 }
 
 int creat(const char* path, mode_t mode){
@@ -50,6 +52,21 @@ int creat(const char* path, mode_t mode){
     if(!handle) { printf("creat handle error!\n"); return -2; }
     old_creat = dlsym(handle, "creat");
     if(!old_creat) { printf("old_creat error!\n"); return -2; }
-    printf("[logger] creat(\"%s\", %o) = %d\n", real_path, mode, old_creat(real_path, mode));
-    return old_creat(real_path, mode);
+    int return_value = old_creat(real_path, mode);
+    printf("[logger] creat(\"%s\", %o) = %d\n", real_path, mode, return_value);
+    return return_value;
+}
+
+int fclose(FILE* stream){
+    int fd = fileno(stream);
+    int (*old_fclose)(FILE*) = NULL;
+    void* handle = dlopen("libc.so.6", RTLD_LAZY);
+    if(!handle) { printf("fclose handle error!\n"); return -2; }
+    old_fclose = dlsym(handle, "fclose");
+    if(!old_fclose) {printf("old_fclose error!\n"); return -2; }
+    char* real_path = calloc(256, sizeof(char));
+    real_path = find_fd_filename(fd);
+    int return_value = old_fclose(stream);
+    printf("[logger] fclose(\"%s\") = %d\n", real_path, return_value);
+    return return_value;
 }
