@@ -70,3 +70,16 @@ int fclose(FILE* stream){
     printf("[logger] fclose(\"%s\") = %d\n", real_path, return_value);
     return return_value;
 }
+
+FILE* fopen(const char* path, const char* mode){
+    FILE* (*old_fopen)(const char*, const char*) = NULL;
+    void* handle = dlopen("libc.so.6", RTLD_LAZY);
+    if(!handle) { printf("fopen handle error!\n"); return NULL; }
+    old_fopen = dlsym(handle, "fopen");
+    if(!old_fopen) {printf("old_fopen error!\n"); return NULL; }
+    char* real_path = calloc(256, sizeof(char));
+    realpath(path, real_path);
+    FILE* return_ptr = old_fopen(path, mode);
+    printf("[logger] fopen(\"%s\", \"%s\") = %p\n", path, mode, return_ptr);
+    return return_ptr;
+}
