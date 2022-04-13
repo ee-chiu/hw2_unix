@@ -4,14 +4,14 @@ CFLAGS = -Wall -g
 CGG = gcc
 SO_FLAGS = -shared -fPIC
 
-PROGS = hw2 hw2.so
+PROGS = logger logger.so
 
 all: ${PROGS}
 
-hw2: hw2.cpp 
+logger: hw2.cpp std_map.h 
 	$(CXX) -o $@ $(CFLAGS) $<
 
-hw2.so: hw2_so.c helper.h
+logger.so: hw2_so.c helper.h
 	$(CGG) -o $@ $(SO_FLAGS) $< -ldl
 
 clean:
