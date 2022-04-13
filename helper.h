@@ -25,13 +25,13 @@ char* find_fd_filename(int fd_){
     return real_path;
 }
 
-void dprint_buffer(char* buf){
+void dprint_buffer(char* buf, int new_stderr){
     int min = 32;
     if(strlen(buf) < min) min = strlen(buf);
-    dprintf(STDERR_FILENO, "\"");
+    dprintf(new_stderr, "\"");
     for(int i = 0 ; i < min ; i++){
-        if(isprint(buf[i])) fprintf(stderr, "%c", buf[i]);
-        else fprintf(stderr, ".");
+        if(isprint(buf[i])) dprintf(new_stderr, "%c", buf[i]);
+        else dprintf(new_stderr, ".");
     } 
-    dprintf(STDERR_FILENO, "\"");
+    dprintf(new_stderr, "\"");
 }
