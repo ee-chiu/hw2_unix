@@ -3,6 +3,8 @@
 #include <dlfcn.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <stdarg.h>
+#include <fcntl.h>
 #include "helper.h"
 
 int chmod(const char* path, mode_t mode){
@@ -15,7 +17,7 @@ int chmod(const char* path, mode_t mode){
     if(!old_chmod) { printf("old_chmod error!\n"); return -2; }
 
     int return_value = old_chmod(real_path, mode);
-    printf("[logger] chmod(\"%s\", %o) = %d\n", real_path, mode, return_value);
+    printf("[logger] chmod(\"%s\", %03o) = %d\n", real_path, mode, return_value);
     return return_value;
 }
 
@@ -57,7 +59,7 @@ int creat(const char* path, mode_t mode){
     if(!old_creat) { printf("old_creat error!\n"); return -2; }
 
     int return_value = old_creat(real_path, mode);
-    printf("[logger] creat(\"%s\", %o) = %d\n", real_path, mode, return_value);
+    printf("[logger] creat(\"%s\", %03o) = %d\n", real_path, mode, return_value);
     return return_value;
 }
 
@@ -104,4 +106,44 @@ size_t fread(void* ptr, size_t size, size_t nmemb, FILE* stream){
     printf("[logger] fread(");
     print_buffer((char*) ptr);
     printf(", %lu, %lu, \"%s\") = %lu\n", size, nmemb, real_path, return_value);
+    return return_value;
+}
+
+size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream){
+    size_t (*old_fwrite)(const void*, size_t, size_t, FILE*);
+    void* handle = dlopen("libc.so.6", RTLD_LAZY);
+    if(!handle) { printf("fwrite handle error!\n"); return 0; }
+    old_fwrite = dlsym(handle, "fwrite");
+    if(!old_fwrite) { printf("old_fwrite error!\n"); return 0; }
+
+    size_t return_value = old_fwrite(ptr, size, nmemb, stream);
+    int fd = fileno(stream);
+    char* real_path = calloc(256, sizeof(char));
+    real_path = find_fd_filename(fd);
+    printf("[logger] fwrite(");
+    print_buffer((char*) ptr);
+    printf(", %lu, %lu, \"%s\") = %lu\n", size, nmemb, real_path, return_value);
+    return return_value;
+}
+
+int open(const char* path, int flags, ...){
+    mode_t mode = 0;
+    if(__OPEN_NEEDS_MODE (flags)){
+        va_list arg;
+        va_start(arg, flags);
+        mode = va_arg(arg, mode_t);
+        va_end(arg);        
+    }
+
+    int (*old_open)(const char*, int, mode_t) = NULL;
+    void* handle = dlopen("libc.so.6", RTLD_LAZY);
+    if(!handle) { printf("open2 handle error!\n"); return -2; }
+    old_open = dlsym(handle, "open");
+    if(!old_open) { printf("old_open2 error!\n"); return -2; }
+
+    int return_value = old_open(path, flags, mode);
+    char* real_path = calloc(256, sizeof(char));
+    realpath(path, real_path);
+    printf("[logger] open(\"%s\", %03o, %03o) = %d\n", real_path, flags, mode, return_value);
+    return return_value;
 }
