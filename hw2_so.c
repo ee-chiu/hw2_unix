@@ -17,7 +17,7 @@ int chmod(const char* path, mode_t mode){
     if(!old_chmod) { printf("old_chmod error!\n"); return -2; }
 
     int return_value = old_chmod(real_path, mode);
-    printf("[logger] chmod(\"%s\", %03o) = %d\n", real_path, mode, return_value);
+    dprintf(STDERR_FILENO, "[logger] chmod(\"%s\", %03o) = %d\n", real_path, mode, return_value);
     return return_value;
 }
 
@@ -31,7 +31,7 @@ int chown(const char* path, uid_t owner, gid_t group){
     if(!old_chown) { printf("old_chown error!\n"); return -2; }
 
     int return_value = old_chown(real_path, owner, group);
-    printf("[looger] chown(\"%s\", %u, %u) = %d\n", real_path, owner, group, return_value);
+    dprintf(STDERR_FILENO, "[looger] chown(\"%s\", %u, %u) = %d\n", real_path, owner, group, return_value);
     return return_value;
 }
 
@@ -45,7 +45,7 @@ int close(int fd){
     char* real_path = calloc(256, sizeof(char));
     real_path = find_fd_filename(fd);
     int return_value = old_close(fd);
-    printf("[logger] close(\"%s\") = %d\n", real_path, return_value);
+    dprintf(STDERR_FILENO, "[logger] close(\"%s\") = %d\n", real_path, return_value);
     return return_value;
 }
 
@@ -59,7 +59,7 @@ int creat(const char* path, mode_t mode){
     if(!old_creat) { printf("old_creat error!\n"); return -2; }
 
     int return_value = old_creat(real_path, mode);
-    printf("[logger] creat(\"%s\", %03o) = %d\n", real_path, mode, return_value);
+    dprintf(STDERR_FILENO, "[logger] creat(\"%s\", %03o) = %d\n", real_path, mode, return_value);
     return return_value;
 }
 
@@ -74,7 +74,7 @@ int fclose(FILE* stream){
     char* real_path = calloc(256, sizeof(char));
     real_path = find_fd_filename(fd);
     int return_value = old_fclose(stream);
-    printf("[logger] fclose(\"%s\") = %d\n", real_path, return_value);
+    dprintf(STDERR_FILENO, "[logger] fclose(\"%s\") = %d\n", real_path, return_value);
     return return_value;
 }
 
@@ -88,7 +88,7 @@ FILE* fopen(const char* path, const char* mode){
     char* real_path = calloc(256, sizeof(char));
     realpath(path, real_path);
     FILE* return_ptr = old_fopen(path, mode);
-    printf("[logger] fopen(\"%s\", \"%s\") = %p\n", path, mode, return_ptr);
+    dprintf(STDERR_FILENO, "[logger] fopen(\"%s\", \"%s\") = %p\n", path, mode, return_ptr);
     return return_ptr;
 }
 
@@ -103,9 +103,9 @@ size_t fread(void* ptr, size_t size, size_t nmemb, FILE* stream){
     int fd = fileno(stream);
     char* real_path = calloc(256, sizeof(char));
     real_path = find_fd_filename(fd);
-    printf("[logger] fread(");
-    print_buffer((char*) ptr);
-    printf(", %lu, %lu, \"%s\") = %lu\n", size, nmemb, real_path, return_value);
+    dprintf(STDERR_FILENO, "[logger] fread(");
+    dprint_buffer((char*) ptr);
+    dprintf(STDERR_FILENO, ", %lu, %lu, \"%s\") = %lu\n", size, nmemb, real_path, return_value);
     return return_value;
 }
 
@@ -120,9 +120,9 @@ size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream){
     int fd = fileno(stream);
     char* real_path = calloc(256, sizeof(char));
     real_path = find_fd_filename(fd);
-    printf("[logger] fwrite(");
-    print_buffer((char*) ptr);
-    printf(", %lu, %lu, \"%s\") = %lu\n", size, nmemb, real_path, return_value);
+    dprintf(STDERR_FILENO, "[logger] fwrite(");
+    dprint_buffer((char*) ptr);
+    dprintf(STDERR_FILENO, ", %lu, %lu, \"%s\") = %lu\n", size, nmemb, real_path, return_value);
     return return_value;
 }
 
@@ -144,7 +144,7 @@ int open(const char* path, int flags, ...){
     int return_value = old_open(path, flags, mode);
     char* real_path = calloc(256, sizeof(char));
     realpath(path, real_path);
-    printf("[logger] open(\"%s\", %03o, %03o) = %d\n", real_path, flags, mode, return_value);
+    dprintf(STDERR_FILENO, "[logger] open(\"%s\", %03o, %03o) = %d\n", real_path, flags, mode, return_value);
     return return_value;
 }
 
@@ -158,9 +158,9 @@ ssize_t read(int fd, void* buf, size_t count){
     char* real_path = calloc(256, sizeof(char));
     real_path = find_fd_filename(fd);
     ssize_t return_value = old_read(fd, buf, count);
-    printf("[logger] read(\"%s\", ", real_path);
-    print_buffer((char*) buf);
-    printf(", %lu) = %lu\n", count, return_value);
+    dprintf(STDERR_FILENO, "[logger] read(\"%s\", ", real_path);
+    dprint_buffer((char*) buf);
+    dprintf(STDERR_FILENO, ", %lu) = %lu\n", count, return_value);
     return return_value;
 }
 
@@ -175,7 +175,7 @@ int remove(const char* path){
     if(!old_remove) { printf("old_remove error!\n"); return -2; }
     
     int return_value = old_remove(real_path);
-    printf("[logger] remove(\"%s\") = %d\n", real_path, return_value);
+    dprintf(STDERR_FILENO, "[logger] remove(\"%s\") = %d\n", real_path, return_value);
     return return_value;
 }
 
@@ -192,7 +192,7 @@ int rename(const char* oldpath, const char* newpath){
     if(!old_rename) { printf("old_rename error!\n"); return -2; }
 
     int return_value = old_rename(real_oldpath, real_newpath);
-    printf("[logger] rename(\"%s\", \"%s\") = %d\n", real_oldpath, real_newpath, return_value);
+    dprintf(STDERR_FILENO, "[logger] rename(\"%s\", \"%s\") = %d\n", real_oldpath, real_newpath, return_value);
     return return_value;
 }
 
@@ -204,7 +204,7 @@ FILE* tmpfile(void){
     if(!old_tmpfile) { printf("old_tmpfile error!\n"); return NULL; }
 
     FILE* return_ptr = old_tmpfile();
-    printf("[logger] tmpfile() = %p\n", return_ptr);
+    dprintf(STDERR_FILENO, "[logger] tmpfile() = %p\n", return_ptr);
     return return_ptr;
 }
 
@@ -217,8 +217,8 @@ ssize_t write(int fd, const void* buff, size_t count){
     ssize_t return_value = old_write(fd, buff, count);
     char* real_path = calloc(256, sizeof(char));
     real_path = find_fd_filename(fd);
-    printf("[logger] write(\"%s\", ", real_path);
-    print_buffer((char*) buff);
-    printf(", %lu) = %lu\n", count, return_value);
+    dprintf(STDERR_FILENO, "[logger] write(\"%s\", ", real_path);
+    dprint_buffer((char*) buff);
+    dprintf(STDERR_FILENO, ", %lu) = %lu\n", count, return_value);
     return return_value;
 }
