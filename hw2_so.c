@@ -195,3 +195,15 @@ int rename(const char* oldpath, const char* newpath){
     printf("[logger] rename(\"%s\", \"%s\") = %d\n", real_oldpath, real_newpath, return_value);
     return return_value;
 }
+
+FILE* tmpfile(void){
+    FILE* (*old_tmpfile)(void) = NULL;
+    void* handle = dlopen("libc.so.6", RTLD_LAZY);
+    if(!handle) { printf("tmpfile handle error!\n"); return NULL; }
+    old_tmpfile = dlsym(handle, "tmpfile");
+    if(!old_tmpfile) { printf("old_tmpfile error!\n"); return NULL; }
+
+    FILE* return_ptr = old_tmpfile();
+    printf("[logger] tmpfile() = %p\n", return_ptr);
+    return return_ptr;
+}
