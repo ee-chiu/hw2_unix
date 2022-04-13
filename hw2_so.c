@@ -207,3 +207,18 @@ FILE* tmpfile(void){
     printf("[logger] tmpfile() = %p\n", return_ptr);
     return return_ptr;
 }
+
+ssize_t write(int fd, const void* buff, size_t count){
+    ssize_t (*old_write)(int, const void*, size_t) = NULL;
+    void* handle = dlopen("libc.so.6", RTLD_LAZY);
+    if(!handle) { printf("write handle error!\n"); return 0; }
+    old_write = dlsym(handle, "write");
+
+    ssize_t return_value = old_write(fd, buff, count);
+    char* real_path = calloc(256, sizeof(char));
+    real_path = find_fd_filename(fd);
+    printf("[logger] write(\"%s\", ", real_path);
+    print_buffer((char*) buff);
+    printf(", %lu) = %lu\n", count, return_value);
+    return return_value;
+}
