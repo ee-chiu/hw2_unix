@@ -147,3 +147,19 @@ int open(const char* path, int flags, ...){
     printf("[logger] open(\"%s\", %03o, %03o) = %d\n", real_path, flags, mode, return_value);
     return return_value;
 }
+
+ssize_t read(int fd, void* buf, size_t count){
+    ssize_t (*old_read)(int, void*, size_t);
+    void* handle = dlopen("libc.so.6", RTLD_LAZY);
+    if(!handle) { printf("read handle error!\n"); return 0; }
+    old_read = dlsym(handle, "read");
+    if(!old_read) { printf("old_read error!\n"); return 0; }
+    
+    char* real_path = calloc(256, sizeof(char));
+    real_path = find_fd_filename(fd);
+    ssize_t return_value = old_read(fd, buf, count);
+    printf("[logger] read(\"%s\", ", real_path);
+    print_buffer((char*) buf);
+    printf(", %lu) = %lu\n", count, return_value);
+    return return_value;
+}
