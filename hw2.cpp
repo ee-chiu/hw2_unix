@@ -4,6 +4,22 @@
 #include <stdlib.h>
 #include "std_map.h"
 
+int get_command_start_index(std::map<const char*, int, my_cmp> arg2index){
+    int command_start_index = -1;
+    if(arg2index.find("--") != arg2index.end()) command_start_index = arg2index["--"] + 1;
+    else{
+        if(arg2index.find("-o") != arg2index.end() && arg2index.find("-p") != arg2index.end())
+            command_start_index = std::max(arg2index["-o"], arg2index["-p"]) + 2;
+        else if(arg2index.find("-o") != arg2index.end())
+            command_start_index = arg2index["-o"] + 2;
+        else if(arg2index.find("-p") != arg2index.end())
+            command_start_index = arg2index["-p"] + 2;
+        else
+            command_start_index = 1;
+    }
+    return command_start_index;
+}
+
 int main(int argc, char* argv[]){
     if(argc < 2) {
         printf("no command given.\n");
@@ -25,19 +41,6 @@ int main(int argc, char* argv[]){
             }
         }
     }
-
-    int command_start_index = -1;
-    if(arg2index.find("--") != arg2index.end()) command_start_index = arg2index["--"] + 1;
-    else{
-        if(arg2index.find("-o") != arg2index.end() && arg2index.find("-p") != arg2index.end())
-            command_start_index = std::max(arg2index["-o"], arg2index["-p"]) + 2;
-        else if(arg2index.find("-o") != arg2index.end())
-            command_start_index = arg2index["-o"] + 2;
-        else if(arg2index.find("-p") != arg2index.end())
-            command_start_index = arg2index["-p"] + 2;
-        else
-            command_start_index = 1;
-    }
     
     char* logger_path = (char*) calloc(256, sizeof(char*));
     strcpy(logger_path, "./logger.so");
@@ -49,6 +52,7 @@ int main(int argc, char* argv[]){
     char** argv2 = (char**) calloc(argc, sizeof(char*));
     for(int i = 0 ; i < argc ; i++) argv2[i] = (char*) calloc(argc, sizeof(char*));
 
+    int command_start_index = get_command_start_index(arg2index);
     for(int i = command_start_index ; i < argc ; i++) strcpy(argv2[i-command_start_index], argv[i]);
     argv2[argc-command_start_index] = NULL;
     setenv("LD_PRELOAD", (const char*) logger_path, 0);
