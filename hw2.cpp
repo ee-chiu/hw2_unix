@@ -11,13 +11,9 @@ int main(int argc, char* argv[]){
     }
 
     std::map<const char*, int, my_cmp> arg2index;
-    int command_start_index = 1;
     for(int i = 0; i < argc ; i++) {
         arg2index[argv[i]] = i;
-        if(!strcmp(argv[i], "--")){
-            command_start_index = i+1;
-            break;
-        }
+        if(!strcmp(argv[i], "--")) break;
         if(argv[i][0] == '-'){
             if(argv[i][1] != 'o' && argv[i][1] != 'p'){
                 printf("./logger: invalid option -- '%c'\n", argv[i][1]);
@@ -29,6 +25,20 @@ int main(int argc, char* argv[]){
             }
         }
     }
+
+    int command_start_index = -1;
+    if(arg2index.find("--") != arg2index.end()) command_start_index = arg2index["--"] + 1;
+    else{
+        if(arg2index.find("-o") != arg2index.end() && arg2index.find("-p") != arg2index.end())
+            command_start_index = std::max(arg2index["-o"], arg2index["-p"]) + 2;
+        else if(arg2index.find("-o") != arg2index.end())
+            command_start_index = arg2index["-o"] + 2;
+        else if(arg2index.find("-p") != arg2index.end())
+            command_start_index = arg2index["-p"] + 2;
+        else
+            command_start_index = 1;
+    }
+    
     char* logger_path = (char*) calloc(256, sizeof(char*));
     strcpy(logger_path, "./logger.so");
     if(arg2index.find("-p") != arg2index.end()) {
