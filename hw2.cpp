@@ -2,6 +2,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include "std_map.h"
 
 int get_command_start_index(std::map<const char*, int, my_cmp> arg2index){
@@ -18,6 +21,17 @@ int get_command_start_index(std::map<const char*, int, my_cmp> arg2index){
             command_start_index = 1;
     }
     return command_start_index;
+}
+
+int get_write_fd(char* argv[], std::map<const char*, int, my_cmp> arg2index){
+    int fd = STDERR_FILENO;
+    if(arg2index.find("-o") != arg2index.end()) {
+        char* file_path = (char*) calloc(256, sizeof(char));
+        strcpy(file_path, argv[arg2index["-o"]+1]);
+        fd = open(file_path, O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU);
+    }
+    int write_fd = dup(fd);
+    return write_fd;
 }
 
 int main(int argc, char* argv[]){
@@ -41,6 +55,11 @@ int main(int argc, char* argv[]){
             }
         }
     }
+
+    int write_fd = get_write_fd(argv, arg2index);
+    char* write_fd_ = (char*) calloc(10, sizeof(char));
+    sprintf(write_fd_, "%d", write_fd);
+    setenv("WRITE_FD", write_fd_, 0);
     
     char* logger_path = (char*) calloc(256, sizeof(char*));
     strcpy(logger_path, "./logger.so");
