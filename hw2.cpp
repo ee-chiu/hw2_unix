@@ -29,13 +29,19 @@ int main(int argc, char* argv[]){
             }
         }
     }
+    char* logger_path = (char*) calloc(256, sizeof(char*));
+    strcpy(logger_path, "./logger.so");
+    if(arg2index.find("-p") != arg2index.end()) {
+        bzero(logger_path, 256);
+        strcpy(logger_path, argv[arg2index["-p"]+1]);
+    }
 
     char** argv2 = (char**) calloc(argc, sizeof(char*));
     for(int i = 0 ; i < argc ; i++) argv2[i] = (char*) calloc(argc, sizeof(char*));
 
     for(int i = command_start_index ; i < argc ; i++) strcpy(argv2[i-command_start_index], argv[i]);
     argv2[argc-command_start_index] = NULL;
-    setenv("LD_PRELOAD", "./logger.so", 0);
+    setenv("LD_PRELOAD", (const char*) logger_path, 0);
     execvp(argv[command_start_index], argv2);
     return 0;
 }
