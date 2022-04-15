@@ -22,6 +22,10 @@ char* find_fd_filename(int fd_){
     char* real_path = calloc(256, sizeof(char));
     int r = readlink(fd_path, real_path, 256);
     if(r < 0) { printf("find_fd_filename readlink error!\n"); return NULL; }
+    free(pid);
+    free(fd);
+    free(fd_path);
+    free(real_path);
     return real_path;
 }
 

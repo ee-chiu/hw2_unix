@@ -29,6 +29,7 @@ int get_write_fd(char* argv[], std::map<const char*, int, my_cmp> arg2index){
         char* file_path = (char*) calloc(256, sizeof(char));
         strcpy(file_path, argv[arg2index["-o"]+1]);
         fd = open(file_path, O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU);
+        free(file_path);
     }
     int write_fd = dup(fd);
     return write_fd;
@@ -60,6 +61,7 @@ int main(int argc, char* argv[]){
     char* write_fd_ = (char*) calloc(10, sizeof(char));
     sprintf(write_fd_, "%d", write_fd);
     setenv("WRITE_FD", write_fd_, 0);
+    free(write_fd_);
     
     char* logger_path = (char*) calloc(256, sizeof(char*));
     strcpy(logger_path, "./logger.so");
@@ -75,6 +77,7 @@ int main(int argc, char* argv[]){
     for(int i = command_start_index ; i < argc ; i++) strcpy(argv2[i-command_start_index], argv[i]);
     argv2[argc-command_start_index] = NULL;
     setenv("LD_PRELOAD", (const char*) logger_path, 0);
+    free(logger_path);
     execvp(argv[command_start_index], argv2);
     return 0;
 }

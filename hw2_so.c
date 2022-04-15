@@ -12,6 +12,7 @@ int get_write_fd(){
     write_fd_ = getenv("WRITE_FD");
     int write_fd = -1;
     sscanf(write_fd_, "%d", &write_fd);
+    free(write_fd_);
     return write_fd;
 }
 
@@ -27,6 +28,7 @@ int chmod(const char* path, mode_t mode){
     realpath(path, real_path);
     int return_value = old_chmod(real_path, mode);
     dprintf(write_fd, "[logger] chmod(\"%s\", %03o) = %d\n", real_path, mode, return_value);
+    free(real_path);
     return return_value;
 }
 
@@ -42,6 +44,7 @@ int chown(const char* path, uid_t owner, gid_t group){
     realpath(path, real_path);
     int return_value = old_chown(real_path, owner, group);
     dprintf(write_fd, "[looger] chown(\"%s\", %u, %u) = %d\n", real_path, owner, group, return_value);
+    free(real_path);
     return return_value;
 }
 
@@ -57,12 +60,11 @@ int close(int fd){
     real_path = find_fd_filename(fd);
     int return_value = old_close(fd);
     dprintf(write_fd, "[logger] close(\"%s\") = %d\n", real_path, return_value);
+    free(real_path);
     return return_value;
 }
 
 int creat(const char* path, mode_t mode){
-    char* real_path = calloc(256, sizeof(char));
-    realpath(path, real_path);
     int (*old_creat)(const char*, mode_t) = NULL;
     void* handle = dlopen("libc.so.6", RTLD_LAZY);
     if(!handle) { printf("creat handle error!\n"); return -2; }
@@ -70,8 +72,11 @@ int creat(const char* path, mode_t mode){
     if(!old_creat) { printf("old_creat error!\n"); return -2; }
 
     int write_fd = get_write_fd();
+    char* real_path = calloc(256, sizeof(char));
+    realpath(path, real_path);
     int return_value = old_creat(real_path, mode);
     dprintf(write_fd, "[logger] creat(\"%s\", %03o) = %d\n", real_path, mode, return_value);
+    free(real_path);
     return return_value;
 }
 
@@ -88,6 +93,7 @@ int fclose(FILE* stream){
     real_path = find_fd_filename(fd);
     int return_value = old_fclose(stream);
     dprintf(write_fd, "[logger] fclose(\"%s\") = %d\n", real_path, return_value);
+    free(real_path);
     return return_value;
 }
 
@@ -103,6 +109,7 @@ FILE* fopen(const char* path, const char* mode){
     realpath(path, real_path);
     FILE* return_ptr = old_fopen(path, mode);
     dprintf(write_fd, "[logger] fopen(\"%s\", \"%s\") = %p\n", real_path, mode, return_ptr);
+    free(real_path);
     return return_ptr;
 }
 
@@ -121,6 +128,7 @@ size_t fread(void* ptr, size_t size, size_t nmemb, FILE* stream){
     dprintf(write_fd, "[logger] fread(");
     dprint_buffer((char*) ptr, write_fd);
     dprintf(write_fd, ", %lu, %lu, \"%s\") = %lu\n", size, nmemb, real_path, return_value);
+    free(real_path);
     return return_value;
 }
 
@@ -139,6 +147,7 @@ size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream){
     dprintf(write_fd, "[logger] fwrite(");
     dprint_buffer((char*) ptr, write_fd);
     dprintf(write_fd, ", %lu, %lu, \"%s\") = %lu\n", size, nmemb, real_path, return_value);
+    free(real_path);
     return return_value;
 }
 
@@ -162,6 +171,7 @@ int open(const char* path, int flags, ...){
     char* real_path = calloc(256, sizeof(char));
     realpath(path, real_path);
     dprintf(write_fd, "[logger] open(\"%s\", %03o, %03o) = %d\n", real_path, flags, mode, return_value);
+    free(real_path);
     return return_value;
 }
 
@@ -179,13 +189,11 @@ ssize_t read(int fd, void* buf, size_t count){
     dprintf(write_fd, "[logger] read(\"%s\", ", real_path);
     dprint_buffer((char*) buf, write_fd);
     dprintf(write_fd, ", %lu) = %lu\n", count, return_value);
+    free(real_path);
     return return_value;
 }
 
 int remove(const char* path){
-    char* real_path = calloc(256, sizeof(char));
-    realpath(path, real_path);
-
     int (*old_remove)(const char*) = NULL;
     void* handle = dlopen("libc.so.6", RTLD_LAZY);
     if(!handle) { printf("remove handle error!\n"); return -2; }
@@ -193,17 +201,15 @@ int remove(const char* path){
     if(!old_remove) { printf("old_remove error!\n"); return -2; }
     
     int write_fd = get_write_fd();
+    char* real_path = calloc(256, sizeof(char));
+    realpath(path, real_path);
     int return_value = old_remove(real_path);
     dprintf(write_fd, "[logger] remove(\"%s\") = %d\n", real_path, return_value);
+    free(real_path);
     return return_value;
 }
 
 int rename(const char* oldpath, const char* newpath){
-    char* real_oldpath = calloc(256, sizeof(char));
-    char* real_newpath = calloc(256, sizeof(char));
-    realpath(oldpath, real_oldpath);
-    realpath(newpath, real_newpath);
-
     int (*old_rename)(const char*, const char*) = NULL;
     void* handle = dlopen("libc.so.6", RTLD_LAZY);
     if(!handle) { printf("rename handle error!\n"); return -2; }
@@ -211,8 +217,14 @@ int rename(const char* oldpath, const char* newpath){
     if(!old_rename) { printf("old_rename error!\n"); return -2; }
 
     int write_fd = get_write_fd();
+    char* real_oldpath = calloc(256, sizeof(char));
+    char* real_newpath = calloc(256, sizeof(char));
+    realpath(oldpath, real_oldpath);
+    realpath(newpath, real_newpath);
     int return_value = old_rename(real_oldpath, real_newpath);
     dprintf(write_fd, "[logger] rename(\"%s\", \"%s\") = %d\n", real_oldpath, real_newpath, return_value);
+    free(real_oldpath);
+    free(real_newpath);
     return return_value;
 }
 
@@ -242,5 +254,6 @@ ssize_t write(int fd, const void* buff, size_t count){
     dprintf(write_fd, "[logger] write(\"%s\", ", real_path);
     dprint_buffer((char*) buff, write_fd);
     dprintf(write_fd, ", %lu) = %lu\n", count, return_value);
+    free(real_path);
     return return_value;
 }
